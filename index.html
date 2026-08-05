@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12002b">
+<title>Conveyor Belt Birthday Bakery</title>
+<meta name="description" content="A retro arcade game: swipe ingredients off a supermarket conveyor belt and bake a cake you probably deserve.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>">
+</head>
+<body>
+
+<div class="cabinet">
+  <div class="screen" id="screen">
+
+    <!-- ================= START SCREEN ================= -->
+    <section class="view view--active" id="view-start" aria-labelledby="game-title">
+      <div class="marquee">
+        <h1 id="game-title" class="title">
+          <span class="title__line title__line--sm">Conveyor Belt</span>
+          <span class="title__line title__line--lg">Birthday</span>
+          <span class="title__line title__line--lg">Bakery</span>
+        </h1>
+        <p class="tagline">Insert coin · Accept or reject · Bake your fate</p>
+      </div>
+
+      <div class="start-art">
+        <span class="sprite sprite--chef">
+          <img src="assets/chef-character.png" alt="" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">👩‍🍳</span>
+        </span>
+        <span class="sprite sprite--bowl">
+          <img src="assets/bowl.png" alt="" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">🥣</span>
+        </span>
+        <span class="sprite sprite--sea">
+          <img src="assets/sea-splash.png" alt="" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">🌊</span>
+        </span>
+      </div>
+
+      <label class="birthday-toggle">
+        <input type="checkbox" id="birthday-check">
+        <span class="birthday-toggle__box" aria-hidden="true"></span>
+        <span class="birthday-toggle__label">It&rsquo;s my birthday!</span>
+      </label>
+
+      <button class="btn btn--primary btn--big" id="btn-start" type="button">Start Game</button>
+
+      <details class="howto">
+        <summary>How to play</summary>
+        <ul>
+          <li><b>→ / Add / swipe right</b> &mdash; drop the ingredient in the bowl</li>
+          <li><b>← / Discard / swipe left</b> &mdash; hurl it into the sea</li>
+          <li>40 ingredients ride the belt. You may keep <b>15</b>.</li>
+          <li>Whatever you keep, <b>a cake gets baked.</b> No exceptions.</li>
+        </ul>
+      </details>
+
+      <button class="sound-toggle" id="btn-sound" type="button" aria-pressed="true" title="Toggle sound">🔊</button>
+    </section>
+
+    <!-- ================= GAME SCREEN ================= -->
+    <section class="view" id="view-game" aria-label="Conveyor belt">
+      <header class="hud">
+        <div class="hud__stat">
+          <span class="hud__label">Ingredients Added</span>
+          <span class="hud__value"><span id="hud-picked">0</span> / <span id="hud-max">15</span></span>
+        </div>
+        <div class="hud__stat hud__stat--right">
+          <span class="hud__label">Belt</span>
+          <span class="hud__value"><span id="hud-seen">0</span> / <span id="hud-total">40</span></span>
+        </div>
+        <div class="hud__bar" role="progressbar" aria-label="Bowl capacity" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0" id="hud-bar">
+          <div class="hud__bar-fill" id="hud-bar-fill"></div>
+        </div>
+      </header>
+
+      <div class="stage">
+        <div class="stage__side stage__side--sea" id="zone-sea">
+          <span class="sprite sprite--zone">
+            <img src="assets/sea-splash.png" alt="" data-fallback>
+            <span class="sprite__fallback" aria-hidden="true">🌊</span>
+          </span>
+          <span class="stage__side-label">Into the Sea</span>
+          <span class="stage__count" id="count-sea">0</span>
+        </div>
+
+        <div class="belt" id="belt">
+          <div class="belt__surface" aria-hidden="true"></div>
+          <div class="belt__track" id="track"></div>
+          <div class="belt__timer"><div class="belt__timer-fill" id="timer-fill"></div></div>
+          <div class="flash" id="flash" aria-hidden="true"></div>
+          <p class="belt__live sr-only" id="live" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="stage__side stage__side--bowl" id="zone-bowl">
+          <span class="sprite sprite--zone">
+            <img src="assets/bowl.png" alt="" data-fallback>
+            <span class="sprite__fallback" aria-hidden="true">🥣</span>
+          </span>
+          <span class="stage__side-label">Mixing Bowl</span>
+          <span class="stage__count" id="count-bowl">0</span>
+        </div>
+      </div>
+
+      <div class="chef-row">
+        <span class="sprite sprite--chef-sm" id="chef">
+          <img src="assets/chef-character.png" alt="Checkout Chef" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">👩‍🍳</span>
+        </span>
+        <ul class="bowl-strip" id="bowl-strip" aria-label="Ingredients in the bowl"></ul>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn--reject" id="btn-reject" type="button">
+          <span class="btn__key">&larr;</span> Discard
+        </button>
+        <button class="btn btn--accept" id="btn-accept" type="button">
+          Add <span class="btn__key">&rarr;</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= BAKING SCREEN ================= -->
+    <section class="view view--center" id="view-baking" aria-label="Baking">
+      <h2 class="baking__title">Baking&hellip;</h2>
+      <div class="oven">
+        <div class="oven__door">
+          <span class="oven__glow"></span>
+          <span class="oven__cake" aria-hidden="true">🎂</span>
+        </div>
+        <div class="oven__knobs"><i></i><i></i><i></i></div>
+      </div>
+      <p class="baking__status" id="baking-status">Preheating the arcade&hellip;</p>
+    </section>
+
+    <!-- ================= RESULT SCREEN ================= -->
+    <section class="view view--result" id="view-result" aria-label="Your cake">
+      <div class="banner" id="bday-banner" hidden>HAPPY BIRTHDAY!</div>
+
+      <div class="cake-stage">
+        <div class="cake-art" id="cake-art"></div>
+      </div>
+
+      <h2 class="cake-name" id="cake-name">Cake</h2>
+      <div class="stars" id="cake-stars" aria-label="Rating"></div>
+      <p class="cake-verdict" id="cake-verdict"></p>
+
+      <ul class="recap" id="recap" aria-label="Ingredients used"></ul>
+
+      <button class="btn btn--primary btn--big" id="btn-again" type="button">Play Again</button>
+    </section>
+
+  </div><!-- /screen -->
+
+  <div class="cabinet__deck" aria-hidden="true">
+    <span class="cabinet__brand">BAKE-O-MATIC 4000</span>
+  </div>
+</div>
+
+<canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+
+<script src="game.js"></script>
+</body>
+</html>
