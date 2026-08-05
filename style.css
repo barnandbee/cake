@@ -839,6 +839,10 @@ body {
 .sprite img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
 .sprite img[hidden] { display: none; }
 .sprite__fallback { font-size: min(46px, 82%); line-height: 1; }
+
+/* Art loaded: drop the emoji. Sprites are transparent around the character,
+   so leaving it in place shows the emoji through them. */
+.sprite--art .sprite__fallback { visibility: hidden; }
 .sprite--chef .sprite__fallback,
 .sprite--bowl .sprite__fallback,
 .sprite--sea  .sprite__fallback { font-size: clamp(40px, 13vw, 64px); }

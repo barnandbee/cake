@@ -431,7 +431,10 @@
      --------------------------------------------------------- */
   document.addEventListener('error', e => {
     const el = e.target;
-    if (el.tagName === 'IMG' && el.hasAttribute('data-fallback')) el.hidden = true;
+    if (el.tagName === 'IMG' && el.hasAttribute('data-fallback')) {
+      el.hidden = true;
+      el.closest('.sprite')?.classList.remove('sprite--art');
+    }
   }, true);
 
   /* The kitchen scene is a CSS background, so it can't use the <img> fallback
@@ -443,12 +446,25 @@
     probe.src = 'assets/kitchen-bg.png';
   };
 
-  // Markup images may have already failed before this script ran — sweep them.
-  const sweepBrokenImages = () => {
-    document.querySelectorAll('img[data-fallback]').forEach(img => {
-      if (img.complete && img.naturalWidth === 0) img.hidden = true;
-    });
+  /* Reconcile one sprite with the state of its image:
+       still loading -> show the emoji, keep the <img> in place
+       loaded        -> mark the wrapper so the emoji is hidden behind it
+                        (sprites have transparent areas — an un-hidden emoji
+                        shows straight through them)
+       failed        -> hide the <img> and leave the emoji showing */
+  const syncSprite = img => {
+    const loaded = img.complete && img.naturalWidth > 0;
+    const failed = img.complete && img.naturalWidth === 0;
+    img.hidden = failed;
+    img.closest('.sprite')?.classList.toggle('sprite--art', loaded);
   };
+
+  const isSpriteImg = el => el.tagName === 'IMG' && el.hasAttribute('data-fallback');
+
+  document.addEventListener('load', e => { if (isSpriteImg(e.target)) syncSprite(e.target); }, true);
+
+  // Markup images may have already settled before this script ran — sweep them.
+  const sweepSprites = () => document.querySelectorAll('img[data-fallback]').forEach(syncSprite);
 
   function sprite(src, emoji, cls = '') {
     return `<span class="sprite ${cls}"><img src="${src}" alt="" data-fallback>` +
@@ -576,6 +592,7 @@
     portrait.alt = `${chef.name}, the ${chef.role.toLowerCase()}`;
     els.chefPortrait.style.aspectRatio = chef.aspect;
     els.chefPortrait.querySelector('.sprite__fallback').textContent = chef.emoji;
+    syncSprite(portrait);                       // cached swaps settle synchronously
 
     els.chefNameEl.textContent = chef.name;
     els.chefRoleEl.textContent = chef.role;
@@ -587,6 +604,7 @@
     belt.src = chef.sprite;
     els.chef.style.aspectRatio = chef.aspect;
     els.chef.querySelector('.sprite__fallback').textContent = chef.emoji;
+    syncSprite(belt);
 
     els.chefPicker.querySelectorAll('.chef-chip').forEach(chip => {
       const on = chip.dataset.chef === chef.id;
@@ -612,6 +630,7 @@
         </span>
         <span class="chef-chip__name">${c.name}</span>
       </button>`).join('');
+    sweepSprites();   // cached chip art may already be complete
     applyChef(chefById(state.save.chef));
   }
 
@@ -1031,8 +1050,8 @@
   // boot
   els.hudMax.textContent = CONFIG.maxPicks;
   els.hudTotal.textContent = INGREDIENTS.length;
-  sweepBrokenImages();
-  window.addEventListener('load', sweepBrokenImages);
+  sweepSprites();
+  window.addEventListener('load', sweepSprites);
   probeKitchen();
 
   els.playerName.value = state.save.name;
