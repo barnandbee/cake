@@ -26,8 +26,20 @@ will be live at `https://<user>.github.io/<repo>/`.
 Items you don't decide on roll off the end of the belt. 40 ingredients pass by;
 the bowl holds 15. The round ends when the bowl is full or the belt runs dry.
 
-Tick **It's my birthday!** on the start screen for candles, a floating banner
-and confetti on the result.
+## Name, birthday and chefs
+
+Enter your name on the start screen and it's remembered between visits. Tick
+**It's my birthday!** for candles, confetti and a banner that reads *HAPPY
+BIRTHDAY, &lt;name&gt;!*
+
+You start with **Tara Tapir** on the checkout. Bake your first cake and
+**Garrington Gecko** unlocks, after which the start screen offers a chef
+picker — whoever you choose works the belt for the round.
+
+Name, chosen chef and bake count live in `localStorage` under `cbbb.save.v1`.
+Every read and write is wrapped in `try`/`catch`, so private mode or a browser
+that refuses storage just means nothing is remembered — the game plays fine.
+To replay the unlock, clear that key (or use a private window).
 
 ## Files
 

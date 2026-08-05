@@ -23,19 +23,29 @@
           <span class="title__line title__line--lg">Bakery</span>
         </h1>
         <p class="tagline">Insert coin · Accept or reject · Bake your fate</p>
-        <p class="subtitle">Tara Tapir is working the checkout. Help her fill the bowl.</p>
+        <p class="subtitle" id="subtitle">Tara Tapir is working the checkout. Help them fill the bowl.</p>
       </div>
 
       <div class="start-art">
-        <span class="sprite sprite--chef">
-          <img src="assets/chef-character.png" alt="Tara Tapir, the checkout chef" data-fallback>
+        <span class="sprite sprite--chef" id="chef-portrait">
+          <img src="assets/chef-tara.png" alt="Tara Tapir, the checkout chef" data-fallback>
           <span class="sprite__fallback" aria-hidden="true">👩‍🍳</span>
         </span>
         <p class="nameplate">
-          <span class="nameplate__name">Tara Tapir</span>
-          <span class="nameplate__role">Checkout Chef</span>
+          <span class="nameplate__name" id="chef-name">Tara Tapir</span>
+          <span class="nameplate__role" id="chef-role">Checkout Chef</span>
+          <span class="nameplate__line" id="chef-line"></span>
         </p>
       </div>
+
+      <div class="chef-picker" id="chef-picker" role="radiogroup" aria-label="Choose your chef" hidden></div>
+      <p class="chef-locked" id="chef-locked">🔒 Bake your first cake to unlock a second chef</p>
+
+      <label class="field">
+        <span class="field__label">Your name</span>
+        <input class="field__input" id="player-name" type="text" maxlength="16"
+               placeholder="PLAYER 1" autocomplete="off" spellcheck="false">
+      </label>
 
       <label class="birthday-toggle">
         <input type="checkbox" id="birthday-check">
@@ -87,7 +97,7 @@
         <div class="belt" id="belt">
           <div class="belt__surface" aria-hidden="true"></div>
           <span class="sprite sprite--chef-sm" id="chef" aria-hidden="true">
-            <img src="assets/chef-character.png" alt="" data-fallback>
+            <img src="assets/chef-tara.png" alt="" data-fallback>
             <span class="sprite__fallback">👩‍🍳</span>
           </span>
           <div class="belt__track" id="track"></div>
@@ -141,9 +151,22 @@
 
       <h2 class="cake-name" id="cake-name">Cake</h2>
       <div class="stars" id="cake-stars" aria-label="Rating"></div>
+      <p class="baked-by" id="baked-by"></p>
       <p class="cake-verdict" id="cake-verdict"></p>
 
       <ul class="recap" id="recap" aria-label="Ingredients used"></ul>
+
+      <div class="unlock" id="unlock" hidden>
+        <span class="sprite unlock__art">
+          <img src="assets/chef-garrington.png" alt="" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">🦎</span>
+        </span>
+        <span class="unlock__text">
+          <b>New chef unlocked!</b>
+          <span id="unlock-name">Garrington Gecko</span>
+          <small>Pick your chef on the start screen.</small>
+        </span>
+      </div>
 
       <button class="btn btn--primary btn--big" id="btn-again" type="button">Play Again</button>
     </section>

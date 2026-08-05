@@ -29,6 +29,51 @@
   };
 
   /* ---------------------------------------------------------
+     1b. CHEFS — Tara is available from the start; Garrington is
+         unlocked once the player has baked their first cake.
+         `aspect` matches each sprite's PNG so the two line up at
+         the same height despite the gecko's tail.
+     --------------------------------------------------------- */
+  const CHEFS = [
+    { id: 'tara', name: 'Tara Tapir', role: 'Checkout Chef', emoji: '👩‍🍳',
+      sprite: 'assets/chef-tara.png', aspect: '203 / 420',
+      line: 'Twenty years on the tills. Nothing on that belt is a surprise any more.' },
+    { id: 'garrington', name: 'Garrington Gecko', role: 'Sous Lizard', emoji: '🦎',
+      sprite: 'assets/chef-garrington.png', aspect: '280 / 420',
+      line: 'Sticky-fingered, unflappable, and tastes everything with their feet.' }
+  ];
+
+  const DEFAULT_CHEF = CHEFS[0];
+  const chefById = id => CHEFS.find(c => c.id === id) || DEFAULT_CHEF;
+
+  /* ---------------------------------------------------------
+     1c. SAVE — player name, chosen chef and how many cakes have
+         been baked, in one localStorage blob. Every access is
+         guarded: private mode and file:// can both refuse.
+     --------------------------------------------------------- */
+  const SAVE_KEY = 'cbbb.save.v1';
+
+  const Save = {
+    load() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+        return {
+          name: typeof raw.name === 'string' ? raw.name.slice(0, 16) : '',
+          chef: chefById(raw.chef).id,
+          bakes: Number.isFinite(raw.bakes) && raw.bakes > 0 ? Math.floor(raw.bakes) : 0
+        };
+      } catch {
+        return { name: '', chef: DEFAULT_CHEF.id, bakes: 0 };
+      }
+    },
+    write(data) {
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch { /* not fatal */ }
+    }
+  };
+
+  const chefsUnlocked = save => save.bakes >= 1;
+
+  /* ---------------------------------------------------------
      2. INGREDIENTS — exactly 40, in four categories.
         `a` = flavour axes this item contributes.
         Art:  assets/ingredient-<id>.png   (emoji fallback below)
@@ -449,6 +494,17 @@
   const els = {
     views:      { start: $('#view-start'), game: $('#view-game'), baking: $('#view-baking'), result: $('#view-result') },
     birthday:   $('#birthday-check'),
+    playerName: $('#player-name'),
+    chefPicker: $('#chef-picker'),
+    chefLocked: $('#chef-locked'),
+    chefPortrait: $('#chef-portrait'),
+    chefNameEl: $('#chef-name'),
+    chefRoleEl: $('#chef-role'),
+    chefLineEl: $('#chef-line'),
+    subtitle:   $('#subtitle'),
+    bakedBy:    $('#baked-by'),
+    unlock:     $('#unlock'),
+    unlockName: $('#unlock-name'),
     btnStart:   $('#btn-start'),
     btnAgain:   $('#btn-again'),
     btnAccept:  $('#btn-accept'),
@@ -484,7 +540,10 @@
   const state = {
     deck: [], cursor: 0, picked: [], rejected: 0,
     birthday: false, running: false, current: null,
-    travelMs: CONFIG.startTravelMs, timers: []
+    travelMs: CONFIG.startTravelMs, timers: [],
+    save: Save.load(),
+    playerName: '',
+    chef: DEFAULT_CHEF
   };
 
   const later = (fn, ms) => { const t = setTimeout(fn, ms); state.timers.push(t); return t; };
@@ -503,6 +562,78 @@
     }
     return a;
   }
+
+  /* ---------- chef selection ---------- */
+
+  /** Portrait, nameplate and the sprite working the belt all follow the pick. */
+  function applyChef(chef) {
+    state.chef = chef;
+    state.save.chef = chef.id;
+
+    const portrait = els.chefPortrait.querySelector('img');
+    portrait.hidden = false;                    // give the new file a fresh chance
+    portrait.src = chef.sprite;
+    portrait.alt = `${chef.name}, the ${chef.role.toLowerCase()}`;
+    els.chefPortrait.style.aspectRatio = chef.aspect;
+    els.chefPortrait.querySelector('.sprite__fallback').textContent = chef.emoji;
+
+    els.chefNameEl.textContent = chef.name;
+    els.chefRoleEl.textContent = chef.role;
+    els.chefLineEl.textContent = chef.line;
+    els.subtitle.textContent = `${chef.name} is working the checkout. Help them fill the bowl.`;
+
+    const belt = els.chef.querySelector('img');
+    belt.hidden = false;
+    belt.src = chef.sprite;
+    els.chef.style.aspectRatio = chef.aspect;
+    els.chef.querySelector('.sprite__fallback').textContent = chef.emoji;
+
+    els.chefPicker.querySelectorAll('.chef-chip').forEach(chip => {
+      const on = chip.dataset.chef === chef.id;
+      chip.classList.toggle('chef-chip--on', on);
+      chip.setAttribute('aria-checked', String(on));
+      chip.tabIndex = on ? 0 : -1;
+    });
+  }
+
+  function renderChefPicker() {
+    const unlocked = chefsUnlocked(state.save);
+    els.chefPicker.hidden = !unlocked;
+    els.chefLocked.hidden = unlocked;
+    if (!unlocked) {
+      applyChef(DEFAULT_CHEF);
+      return;
+    }
+    els.chefPicker.innerHTML = CHEFS.map(c => `
+      <button type="button" class="chef-chip" role="radio" aria-checked="false" data-chef="${c.id}">
+        <span class="sprite chef-chip__art" style="aspect-ratio:${c.aspect}">
+          <img src="${c.sprite}" alt="" data-fallback>
+          <span class="sprite__fallback" aria-hidden="true">${c.emoji}</span>
+        </span>
+        <span class="chef-chip__name">${c.name}</span>
+      </button>`).join('');
+    applyChef(chefById(state.save.chef));
+  }
+
+  els.chefPicker.addEventListener('click', e => {
+    const chip = e.target.closest('.chef-chip');
+    if (!chip) return;
+    applyChef(chefById(chip.dataset.chef));
+    Save.write(state.save);
+    Sound.accept();
+  });
+
+  // arrow keys move between the two chef chips, as a radiogroup should
+  els.chefPicker.addEventListener('keydown', e => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    const step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
+    const idx = CHEFS.findIndex(c => c.id === state.chef.id);
+    const next = CHEFS[(idx + step + CHEFS.length) % CHEFS.length];
+    applyChef(next);
+    Save.write(state.save);
+    els.chefPicker.querySelector('.chef-chip--on')?.focus();
+  });
 
   /* ---------- conveyor ---------- */
 
@@ -750,10 +881,28 @@
       ? state.picked.map(i => `<li>${sprite(`assets/ingredient-${i.id}.png`, i.emoji)}<span>${i.name}</span></li>`).join('')
       : '<li class="recap--empty">An empty bowl. Bold.</li>';
 
+    // Record the bake. The first one ever unlocks the second chef.
+    const hadChefChoice = chefsUnlocked(state.save);
+    state.save.bakes += 1;
+    Save.write(state.save);
+    const justUnlocked = !hadChefChoice && chefsUnlocked(state.save);
+
+    const who = state.playerName;
+    els.banner.textContent = who ? `HAPPY BIRTHDAY, ${who}!` : 'HAPPY BIRTHDAY!';
     els.banner.hidden = !state.birthday;
+
+    els.bakedBy.textContent = who
+      ? `Baked by ${who}, with ${state.chef.name}`
+      : `Baked with ${state.chef.name}`;
+
+    const locked = CHEFS.find(c => c.id !== DEFAULT_CHEF.id);
+    els.unlockName.textContent = locked.name;
+    els.unlock.hidden = !justUnlocked;
+
     showView('result');
     Sound.win();
 
+    if (justUnlocked) later(Sound.win, 700);
     if (state.birthday) Confetti.burst(2600);
   }
 
@@ -835,6 +984,10 @@
     state.running = true;
     state.current = null;
 
+    state.playerName = els.playerName.value.trim().replace(/\s+/g, ' ');
+    state.save.name = state.playerName;
+    Save.write(state.save);
+
     els.track.innerHTML = '';
     els.bowlStrip.innerHTML = '';
     els.hudMax.textContent = CONFIG.maxPicks;
@@ -853,6 +1006,7 @@
     Confetti.stop();
     state.running = false;
     els.bakingStatus.textContent = BAKING_LINES[0];
+    renderChefPicker();   // a chef unlocked this round shows up now
     showView('start');
   }
 
@@ -880,6 +1034,13 @@
   sweepBrokenImages();
   window.addEventListener('load', sweepBrokenImages);
   probeKitchen();
+
+  els.playerName.value = state.save.name;
+  els.playerName.addEventListener('change', () => {
+    state.save.name = els.playerName.value.trim().slice(0, 16);
+    Save.write(state.save);
+  });
+  renderChefPicker();
 
   // handy for tinkering from the console
   window.BAKERY = { INGREDIENTS, CAKES, buildProfile, pickCake, CONFIG };

@@ -13,13 +13,26 @@ rendered with `image-rendering: pixelated`.
 | File | Size | Used for |
 | --- | --- | --- |
 | `kitchen-bg.png` | 1376×768 | The bakery — backdrop for the belt, dimmed behind the other screens |
-| `chef-character.png` | 203×420 | Tara Tapir, the Checkout Chef (start screen + working the belt) |
+| `chef-tara.png` | 203×420 | Tara Tapir, the Checkout Chef (default) |
+| `chef-garrington.png` | 280×420 | Garrington Gecko, the Sous Lizard (unlocked after the first bake) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
-`chef-character.png` is the source sprite with its glow halo removed and
-trimmed to the character's bounding box. `bowl.png` and `sea-splash.png` are
-crops of `kitchen-bg.png` so the side panels match the room.
+Both chef sprites are the source art cut out and trimmed to the character's
+bounding box, then scaled to a shared **420px height** so they stand at the
+same size — Garrington's box is wider only because of his tail. Each chef's
+`aspect` in the `CHEFS` array in `game.js` must match its PNG, since the
+sprite is sized by height and the aspect ratio supplies the width.
+
+`bowl.png` and `sea-splash.png` are crops of `kitchen-bg.png` so the side
+panels match the room.
+
+### Adding a third chef
+
+Add an entry to `CHEFS` in `game.js` (`id`, `name`, `role`, `emoji`, `sprite`,
+`aspect`, `line`) and drop the PNG in here. The picker renders from that array,
+so nothing else needs changing — though the unlock rule in `chefsUnlocked()`
+currently gates the whole picker on a single bake.
 
 ### How the kitchen lines up with the belt
 
