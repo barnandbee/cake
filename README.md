@@ -1,8 +1,9 @@
 # 🎂 Conveyor Belt Birthday Bakery
 
-A classic-arcade web game. Ingredients ride a supermarket conveyor belt past
-your Checkout Chef, and you decide: **into the mixing bowl**, or **into the
-sea**. Whatever ends up in the bowl gets baked into one of 30 cakes — no
+A classic-arcade web game set in a seaside pixel-art bakery. Ingredients ride
+the conveyor belt past **Tara Tapir**, the Checkout Chef, and you decide: **into
+the mixing bowl**, or **into the sea** (which is right there, through the
+window). Whatever ends up in the bowl gets baked into one of 30 cakes — no
 matter how ill-advised your choices were.
 
 Vanilla HTML/CSS/JS. No build step, no dependencies, no npm install.
@@ -62,13 +63,17 @@ BAKERY.pickCake(BAKERY.buildProfile([8, 30].map(id =>
 ))).name  // "Red Velvet Dream"
 ```
 
-## Swapping in your own art
+## Art
+
+The bakery and Tara Tapir ship in `assets/`. Ingredient and cake art doesn't —
+those still render as emoji until you add them.
 
 Every sprite is an `<img>` layered over an emoji fallback. Drop a PNG into
 `assets/` with the right filename and it takes over automatically — no code
-changes. Missing files silently fall back to emoji, which is why the game runs
-fine with an empty `assets/` folder. See [`assets/README.md`](assets/README.md)
-for the full filename map.
+changes. Missing files silently fall back to emoji, which is why the game still
+runs with an empty `assets/` folder (you get the CSS-drawn belt instead of the
+kitchen). See [`assets/README.md`](assets/README.md) for the full filename map
+and for how the kitchen backdrop is aligned to the conveyor.
 
 ## Tuning
 

@@ -22,8 +22,16 @@
           "Cascadia Mono", Consolas, "Courier New", monospace;
 
   --px: 4px;                 /* chunky border unit */
-  --belt-h: clamp(200px, 34vh, 300px);
+  --belt-h: clamp(230px, 38vh, 330px);
+
+  /* Where an item rests on the belt, as a distance from the bottom of the
+     stage. With the kitchen art this lines up with the conveyor's top rail
+     (y = 465/768 = 60.5% down the scene); without it, the CSS belt. */
+  --card-bottom: 30%;
 }
+
+/* kitchen-bg.png loaded successfully — game.js probes for it and sets this */
+.has-kitchen { --card-bottom: 37%; }
 
 * { box-sizing: border-box; }
 
@@ -131,6 +139,18 @@ body {
 #view-start { justify-content: center; }
 #view-start .howto { margin-top: auto; }
 
+/* the bakery itself, dimmed right down so the marquee stays readable */
+.has-kitchen #view-start,
+.has-kitchen #view-baking,
+.has-kitchen #view-result {
+  background:
+    linear-gradient(rgba(9, 0, 26, .86), rgba(9, 0, 26, .95)),
+    url("assets/kitchen-bg.png") center / cover no-repeat;
+  image-rendering: pixelated;
+}
+
+.has-kitchen #view-result { background-image: linear-gradient(rgba(9, 0, 26, .9), rgba(9, 0, 26, .97)), url("assets/kitchen-bg.png"); }
+
 .marquee { text-align: center; }
 
 .title {
@@ -165,17 +185,43 @@ body {
 
 @keyframes blink { 50% { opacity: .25; } }
 
+.subtitle {
+  margin: 8px 0 0;
+  font-size: clamp(8px, 2.4vw, 10px);
+  line-height: 1.8;
+  color: #cbb8ff;
+}
+
 .start-art {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  gap: clamp(10px, 5vw, 34px);
+  gap: clamp(12px, 5vw, 28px);
   padding: 6px 0;
 }
 
-.sprite--chef { width: clamp(72px, 22vw, 108px); aspect-ratio: 1; animation: bob 1.6s ease-in-out infinite; }
-.sprite--bowl { width: clamp(56px, 16vw, 80px); aspect-ratio: 1; animation: bob 1.6s ease-in-out .3s infinite; }
-.sprite--sea  { width: clamp(56px, 16vw, 80px); aspect-ratio: 1; animation: bob 1.6s ease-in-out .6s infinite; }
+.sprite--chef {
+  width: auto;
+  height: clamp(140px, 30vh, 240px);
+  aspect-ratio: 203 / 420;
+  animation: bob 1.6s ease-in-out infinite;
+  filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, .5));
+}
+
+.nameplate {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 5px;
+  background: rgba(10, 0, 30, .72);
+  box-shadow: inset 0 0 0 2px var(--neon-2);
+}
+
+.nameplate__name { font-size: clamp(11px, 3.4vw, 15px); color: var(--neon-3); text-shadow: 2px 2px 0 var(--shadow); }
+.nameplate__role { font-size: 8px; letter-spacing: .12em; color: var(--neon-2); text-transform: uppercase; }
 
 @keyframes bob { 50% { transform: translateY(-8px); } }
 
@@ -316,7 +362,7 @@ body {
 .stage {
   flex: 1 1 auto;
   min-height: var(--belt-h);
-  max-height: 46vh;
+  max-height: 52vh;
   display: grid;
   grid-template-columns: 64px 1fr 64px;
   gap: 6px;
@@ -343,7 +389,8 @@ body {
 .stage__side--bowl { color: var(--lime); }
 .stage__side.hot   { background: rgba(255, 255, 255, .16); transform: scale(1.04); }
 
-.sprite--zone { width: 34px; aspect-ratio: 1; }
+.sprite--zone { width: 100%; height: 78px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .5); }
+.sprite--zone img { object-fit: cover; image-rendering: pixelated; }
 .stage__side-label { text-transform: uppercase; letter-spacing: .06em; }
 .stage__count { font-size: 13px; color: var(--paper); }
 
@@ -362,6 +409,34 @@ body {
     linear-gradient(180deg, #24104f 0%, #170833 55%, #0d0322 100%);
   box-shadow: inset 0 0 0 3px #3a1a72;
 }
+
+/* With the kitchen art the whole scene becomes the belt backdrop. Height maps
+   1:1 (`auto 100%`), so the conveyor always lands at the same fraction of the
+   container no matter how wide the screen is — which is what --card-bottom
+   is calibrated against. Width is cropped from the centre. */
+.has-kitchen .belt {
+  background: url("assets/kitchen-bg.png") center center / auto 100% no-repeat, #2b2454;
+  image-rendering: pixelated;
+}
+
+.has-kitchen .belt::before,
+.has-kitchen .belt__surface { display: none; }
+
+/* Tara works the front of the belt; items slide past behind her */
+.belt .sprite--chef-sm {
+  position: absolute;
+  left: 4%;
+  bottom: 1%;
+  width: auto;
+  height: 40%;
+  aspect-ratio: 203 / 420;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, .45));
+}
+
+/* without the art the emoji stand-in needs to sit on the drawn belt instead */
+:root:not(.has-kitchen) .belt .sprite--chef-sm { height: 26%; bottom: 4%; }
 
 /* shelf rails on the back wall — pure decoration */
 .belt::before {
@@ -403,7 +478,7 @@ body {
 /* the card sits ON the belt surface, not floating above it */
 .card-travel {
   position: absolute;
-  bottom: 30%;
+  bottom: var(--card-bottom);
   left: 0;
   width: 96px;
   will-change: transform;
@@ -464,6 +539,7 @@ body {
 .flash {
   position: absolute;
   inset: 0;
+  z-index: 5;
   display: grid;
   place-items: center;
   font-size: clamp(14px, 5vw, 22px);
@@ -489,15 +565,13 @@ body {
   to   { opacity: 0; transform: translateY(-46px) scale(1.5); }
 }
 
-/* ---------------- chef + bowl strip ---------------- */
+/* ---------------- bowl strip ---------------- */
 
-.chef-row { display: flex; align-items: center; gap: 10px; }
-.sprite--chef-sm { width: 52px; aspect-ratio: 1; flex: none; }
 .sprite--chef-sm.cheer { animation: cheer .4s steps(4, end); }
 @keyframes cheer { 50% { transform: translateY(-10px) rotate(-8deg); } }
 
 .bowl-strip {
-  flex: 1;
+  flex: none;
   display: flex;
   flex-wrap: wrap;
   gap: 3px;

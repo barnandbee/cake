@@ -8,25 +8,34 @@ through. If the file exists, it wins.
 Transparent PNGs, square, ~256×256 (cakes ~512×512) work best. Pixel art is
 rendered with `image-rendering: pixelated`.
 
-## Scene art
+## Scene art (shipped)
 
-| File | Used for |
-| --- | --- |
-| `chef-character.png` | Checkout Chef sprite (start screen + belt) |
-| `conveyor-belt-bg.png` | Belt surface — see note below |
-| `bowl.png` | Mixing bowl (accept zone) |
-| `sea-splash.png` | The sea (discard zone) |
+| File | Size | Used for |
+| --- | --- | --- |
+| `kitchen-bg.png` | 1376×768 | The bakery — backdrop for the belt, dimmed behind the other screens |
+| `chef-character.png` | 203×420 | Tara Tapir, the Checkout Chef (start screen + working the belt) |
+| `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
+| `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
-The belt surface is currently drawn in CSS. To use your own art, add this to
-`style.css`:
+`chef-character.png` is the source sprite with its glow halo removed and
+trimmed to the character's bounding box. `bowl.png` and `sea-splash.png` are
+crops of `kitchen-bg.png` so the side panels match the room.
 
-```css
-.belt__surface {
-  background-image: url("assets/conveyor-belt-bg.png");
-  background-size: auto 100%;
-  background-repeat: repeat-x;
-}
-```
+### How the kitchen lines up with the belt
+
+`kitchen-bg.png` is a CSS background on `.belt`, sized `auto 100%` — scaled by
+**height**, cropped horizontally from the centre. That makes the vertical
+mapping exact at any screen width, so the conveyor's top rail always lands at
+the same fraction of the container: **y = 465/768 = 60.5%**.
+
+Cards are parked on that line by the `--card-bottom` custom property in
+`style.css` (37% from the bottom, which puts a card's base in the middle of the
+belt's top surface). **If you replace the kitchen art, re-measure the rail and
+update `--card-bottom` to `100% − railFraction − a few %`.**
+
+Because it's a CSS background it can't use the `<img>` fallback trick, so
+`game.js` probes the file on boot and adds `has-kitchen` to `<html>` only if it
+loads. Delete the file and the game falls back to the CSS-drawn belt and wall.
 
 ## Ingredients
 

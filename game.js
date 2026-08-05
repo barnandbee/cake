@@ -389,6 +389,15 @@
     if (el.tagName === 'IMG' && el.hasAttribute('data-fallback')) el.hidden = true;
   }, true);
 
+  /* The kitchen scene is a CSS background, so it can't use the <img> fallback
+     trick. Probe it instead: if it loads, `has-kitchen` swaps the drawn belt
+     for the real bakery and drops the cards onto the painted conveyor. */
+  const probeKitchen = () => {
+    const probe = new Image();
+    probe.onload = () => document.documentElement.classList.add('has-kitchen');
+    probe.src = 'assets/kitchen-bg.png';
+  };
+
   // Markup images may have already failed before this script ran — sweep them.
   const sweepBrokenImages = () => {
     document.querySelectorAll('img[data-fallback]').forEach(img => {
@@ -870,6 +879,7 @@
   els.hudTotal.textContent = INGREDIENTS.length;
   sweepBrokenImages();
   window.addEventListener('load', sweepBrokenImages);
+  probeKitchen();
 
   // handy for tinkering from the console
   window.BAKERY = { INGREDIENTS, CAKES, buildProfile, pickCake, CONFIG };

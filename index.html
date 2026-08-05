@@ -23,21 +23,18 @@
           <span class="title__line title__line--lg">Bakery</span>
         </h1>
         <p class="tagline">Insert coin · Accept or reject · Bake your fate</p>
+        <p class="subtitle">Tara Tapir is working the checkout. Help her fill the bowl.</p>
       </div>
 
       <div class="start-art">
         <span class="sprite sprite--chef">
-          <img src="assets/chef-character.png" alt="" data-fallback>
+          <img src="assets/chef-character.png" alt="Tara Tapir, the checkout chef" data-fallback>
           <span class="sprite__fallback" aria-hidden="true">👩‍🍳</span>
         </span>
-        <span class="sprite sprite--bowl">
-          <img src="assets/bowl.png" alt="" data-fallback>
-          <span class="sprite__fallback" aria-hidden="true">🥣</span>
-        </span>
-        <span class="sprite sprite--sea">
-          <img src="assets/sea-splash.png" alt="" data-fallback>
-          <span class="sprite__fallback" aria-hidden="true">🌊</span>
-        </span>
+        <p class="nameplate">
+          <span class="nameplate__name">Tara Tapir</span>
+          <span class="nameplate__role">Checkout Chef</span>
+        </p>
       </div>
 
       <label class="birthday-toggle">
@@ -89,6 +86,10 @@
 
         <div class="belt" id="belt">
           <div class="belt__surface" aria-hidden="true"></div>
+          <span class="sprite sprite--chef-sm" id="chef" aria-hidden="true">
+            <img src="assets/chef-character.png" alt="" data-fallback>
+            <span class="sprite__fallback">👩‍🍳</span>
+          </span>
           <div class="belt__track" id="track"></div>
           <div class="belt__timer"><div class="belt__timer-fill" id="timer-fill"></div></div>
           <div class="flash" id="flash" aria-hidden="true"></div>
@@ -105,13 +106,7 @@
         </div>
       </div>
 
-      <div class="chef-row">
-        <span class="sprite sprite--chef-sm" id="chef">
-          <img src="assets/chef-character.png" alt="Checkout Chef" data-fallback>
-          <span class="sprite__fallback" aria-hidden="true">👩‍🍳</span>
-        </span>
-        <ul class="bowl-strip" id="bowl-strip" aria-label="Ingredients in the bowl"></ul>
-      </div>
+      <ul class="bowl-strip" id="bowl-strip" aria-label="Ingredients in the bowl"></ul>
 
       <div class="controls">
         <button class="btn btn--reject" id="btn-reject" type="button">
