@@ -40,6 +40,43 @@ Source art arrives in two shapes, and the cutout has to match:
 `bowl.png` and `sea-splash.png` are crops of `kitchen-bg.png` so the side
 panels match the room.
 
+## Favicons
+
+| File | Size | Used for |
+| --- | --- | --- |
+| `../favicon.ico` | 16 + 32 + 48 | the classic tab icon, also what browsers guess at |
+| `favicon-16.png` | 16×16 | tab icon |
+| `favicon-32.png` | 32×32 | tab icon on higher-density screens |
+| `apple-touch-icon.png` | 180×180 | iOS home screen |
+
+Hand-drawn pixel art on a 16×16 grid in the cabinet palette — pink icing, a lit
+candle, purple background — then scaled by **whole numbers only** (32, 48, and
+176 centred inside the 180 iOS tile) so the pixels stay square at every size.
+The grid, one character per pixel:
+
+```
+................     .  background #2a0f5c
+.......ff.......     f  flame core #fff9c4
+.......FF.......     F  flame      #ffb300
+.......CC.......     C  candle     #ffffff
+.......pp.......     p  stripe     #ff2e8b
+.......CC.......     I  icing      #ff5c8a
+...IIIIIIIIII...     d  drip gap   #f4d199
+...IIIIIIIIII...     S  sponge     #f4d199
+...IIddIIddII...     s  sponge band #e0b25f
+...SSSSSSSSSS...     P  plate      #d9d9e3
+...SSSSSSSSSS...     B  plate edge #9e9eb0
+...ssssssssss...
+...SSSSSSSSSS...     A one-pixel margin keeps the plate clear of
+..PPPPPPPPPPPP..     the rounded corner mask iOS applies.
+..BBBBBBBBBBBB..
+................
+```
+
+To redraw it, edit the grid and re-render each size with nearest-neighbour
+scaling (any pixel editor will do) — keep the multiples whole or the pixels
+turn to mush at 16px.
+
 ### Adding another chef
 
 Add an entry to `CHEFS` in `game.js` (`id`, `name`, `role`, `emoji`, `sprite`,
