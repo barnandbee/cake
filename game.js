@@ -29,29 +29,48 @@
   };
 
   /* ---------------------------------------------------------
-     1b. CHEFS — Tara is available from the start; Garrington is
-         unlocked once the player has baked their first cake.
-         `aspect` matches each sprite's PNG so the two line up at
-         the same height despite the gecko's tail.
+     1b. CHEFS — Tara is available from the start; the rest are
+         earned. `unlock.test` reads the save, `unlock.hint` is
+         shown on the locked chip so players know what to aim for.
+         `aspect` matches each sprite's PNG: sprites are sized by
+         height, so the aspect ratio supplies the width and every
+         chef stands the same size despite tails and stalks.
      --------------------------------------------------------- */
   const CHEFS = [
     { id: 'tara', name: 'Tara Tapir', role: 'Checkout Chef', emoji: '👩‍🍳',
       sprite: 'assets/chef-tara.png', aspect: '203 / 420',
       line: 'Twenty years on the tills. Nothing on that belt is a surprise any more.' },
+
     { id: 'garrington', name: 'Garrington Gecko', role: 'Sous Lizard', emoji: '🦎',
       sprite: 'assets/chef-garrington.png', aspect: '280 / 420',
-      line: 'Sticky-fingered, unflappable, and tastes everything with their feet.' }
+      line: 'Sticky-fingered, unflappable, and tastes everything with their feet.',
+      unlock: { hint: 'Bake your first cake', test: s => s.bakes >= 1 } },
+
+    { id: 'bernie', name: 'Bernie Banana', role: 'Head of Batter', emoji: '🍌',
+      sprite: 'assets/chef-bernie.png', aspect: '218 / 420',
+      line: 'Sweet, dependable, and about four days from perfectly ripe.',
+      unlock: { hint: 'Bake a 3-star cake', test: s => s.bestStars >= 3 } },
+
+    { id: 'bronte', name: 'Brontë Bottlenose', role: 'Executive Chef', emoji: '🐬',
+      sprite: 'assets/chef-bronte.png', aspect: '256 / 420',
+      line: 'Trained at sea. Can hear a soggy bottom from three rooms away.',
+      unlock: { hint: 'Bake a 5-star cake', test: s => s.bestStars >= 5 } }
   ];
 
   const DEFAULT_CHEF = CHEFS[0];
   const chefById = id => CHEFS.find(c => c.id === id) || DEFAULT_CHEF;
+  const isUnlocked = (chef, save) => !chef.unlock || chef.unlock.test(save);
 
   /* ---------------------------------------------------------
-     1c. SAVE — player name, chosen chef and how many cakes have
-         been baked, in one localStorage blob. Every access is
-         guarded: private mode and file:// can both refuse.
+     1c. SAVE — player name, chosen chef, cakes baked and the best
+         star rating earned, in one localStorage blob. Every access
+         is guarded: private mode and file:// can both refuse.
+         Fields are validated individually, so a save written before
+         a field existed simply defaults.
      --------------------------------------------------------- */
   const SAVE_KEY = 'cbbb.save.v1';
+  const blankSave = () => ({ name: '', chef: DEFAULT_CHEF.id, bakes: 0, bestStars: 0 });
+  const counter = (v, max) => (Number.isFinite(v) && v > 0 ? Math.min(Math.floor(v), max) : 0);
 
   const Save = {
     load() {
@@ -60,18 +79,17 @@
         return {
           name: typeof raw.name === 'string' ? raw.name.slice(0, 16) : '',
           chef: chefById(raw.chef).id,
-          bakes: Number.isFinite(raw.bakes) && raw.bakes > 0 ? Math.floor(raw.bakes) : 0
+          bakes: counter(raw.bakes, Number.MAX_SAFE_INTEGER),
+          bestStars: counter(raw.bestStars, 5)
         };
       } catch {
-        return { name: '', chef: DEFAULT_CHEF.id, bakes: 0 };
+        return blankSave();
       }
     },
     write(data) {
       try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch { /* not fatal */ }
     }
   };
-
-  const chefsUnlocked = save => save.bakes >= 1;
 
   /* ---------------------------------------------------------
      2. INGREDIENTS — exactly 40, in four categories.
@@ -512,7 +530,6 @@
     birthday:   $('#birthday-check'),
     playerName: $('#player-name'),
     chefPicker: $('#chef-picker'),
-    chefLocked: $('#chef-locked'),
     chefPortrait: $('#chef-portrait'),
     chefNameEl: $('#chef-name'),
     chefRoleEl: $('#chef-role'),
@@ -520,7 +537,6 @@
     subtitle:   $('#subtitle'),
     bakedBy:    $('#baked-by'),
     unlock:     $('#unlock'),
-    unlockName: $('#unlock-name'),
     btnStart:   $('#btn-start'),
     btnAgain:   $('#btn-again'),
     btnAccept:  $('#btn-accept'),
@@ -614,42 +630,46 @@
     });
   }
 
+  /** Every chef is listed; locked ones show what it takes to earn them. */
   function renderChefPicker() {
-    const unlocked = chefsUnlocked(state.save);
-    els.chefPicker.hidden = !unlocked;
-    els.chefLocked.hidden = unlocked;
-    if (!unlocked) {
-      applyChef(DEFAULT_CHEF);
-      return;
-    }
-    els.chefPicker.innerHTML = CHEFS.map(c => `
-      <button type="button" class="chef-chip" role="radio" aria-checked="false" data-chef="${c.id}">
+    els.chefPicker.innerHTML = CHEFS.map(c => {
+      const open = isUnlocked(c, state.save);
+      return `
+      <button type="button" class="chef-chip${open ? '' : ' chef-chip--locked'}"
+              role="radio" aria-checked="false" data-chef="${c.id}"
+              ${open ? '' : `disabled aria-label="${c.name} — locked. ${c.unlock.hint}"`}>
         <span class="sprite chef-chip__art" style="aspect-ratio:${c.aspect}">
           <img src="${c.sprite}" alt="" data-fallback>
           <span class="sprite__fallback" aria-hidden="true">${c.emoji}</span>
         </span>
-        <span class="chef-chip__name">${c.name}</span>
-      </button>`).join('');
+        <span class="chef-chip__name">${open ? c.name : '???'}</span>
+        ${open ? '' : `<span class="chef-chip__hint">🔒 ${c.unlock.hint}</span>`}
+      </button>`;
+    }).join('');
     sweepSprites();   // cached chip art may already be complete
-    applyChef(chefById(state.save.chef));
+
+    // a save pointing at a chef that isn't earned (or was cleared) falls back
+    const saved = chefById(state.save.chef);
+    applyChef(isUnlocked(saved, state.save) ? saved : DEFAULT_CHEF);
   }
 
   els.chefPicker.addEventListener('click', e => {
     const chip = e.target.closest('.chef-chip');
-    if (!chip) return;
+    if (!chip || chip.disabled) return;
     applyChef(chefById(chip.dataset.chef));
     Save.write(state.save);
     Sound.accept();
   });
 
-  // arrow keys move between the two chef chips, as a radiogroup should
+  // arrow keys cycle the unlocked chips, as a radiogroup should
   els.chefPicker.addEventListener('keydown', e => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
     e.preventDefault();
+    const open = CHEFS.filter(c => isUnlocked(c, state.save));
+    if (open.length < 2) return;
     const step = (e.key === 'ArrowRight' || e.key === 'ArrowDown') ? 1 : -1;
-    const idx = CHEFS.findIndex(c => c.id === state.chef.id);
-    const next = CHEFS[(idx + step + CHEFS.length) % CHEFS.length];
-    applyChef(next);
+    const idx = open.findIndex(c => c.id === state.chef.id);
+    applyChef(open[(idx + step + open.length) % open.length]);
     Save.write(state.save);
     els.chefPicker.querySelector('.chef-chip--on')?.focus();
   });
@@ -900,11 +920,13 @@
       ? state.picked.map(i => `<li>${sprite(`assets/ingredient-${i.id}.png`, i.emoji)}<span>${i.name}</span></li>`).join('')
       : '<li class="recap--empty">An empty bowl. Bold.</li>';
 
-    // Record the bake. The first one ever unlocks the second chef.
-    const hadChefChoice = chefsUnlocked(state.save);
+    // Record the bake, then see who that just earned. A single cake can
+    // unlock more than one chef (a first bake worth 5 stars clears them all).
+    const before = CHEFS.filter(c => isUnlocked(c, state.save)).map(c => c.id);
     state.save.bakes += 1;
+    state.save.bestStars = Math.max(state.save.bestStars, stars);
     Save.write(state.save);
-    const justUnlocked = !hadChefChoice && chefsUnlocked(state.save);
+    const earned = CHEFS.filter(c => isUnlocked(c, state.save) && !before.includes(c.id));
 
     const who = state.playerName;
     els.banner.textContent = who ? `HAPPY BIRTHDAY, ${who}!` : 'HAPPY BIRTHDAY!';
@@ -914,14 +936,26 @@
       ? `Baked by ${who}, with ${state.chef.name}`
       : `Baked with ${state.chef.name}`;
 
-    const locked = CHEFS.find(c => c.id !== DEFAULT_CHEF.id);
-    els.unlockName.textContent = locked.name;
-    els.unlock.hidden = !justUnlocked;
+    els.unlock.hidden = !earned.length;
+    if (earned.length) {
+      els.unlock.innerHTML =
+        `<p class="unlock__title">New chef${earned.length > 1 ? 's' : ''} unlocked!</p>` +
+        earned.map(c => `
+          <span class="unlock__row">
+            <span class="sprite unlock__art" style="aspect-ratio:${c.aspect}">
+              <img src="${c.sprite}" alt="" data-fallback>
+              <span class="sprite__fallback" aria-hidden="true">${c.emoji}</span>
+            </span>
+            <span class="unlock__who"><b>${c.name}</b><small>${c.role}</small></span>
+          </span>`).join('') +
+        '<p class="unlock__foot">Pick your chef on the start screen.</p>';
+      sweepSprites();
+    }
 
     showView('result');
     Sound.win();
 
-    if (justUnlocked) later(Sound.win, 700);
+    if (earned.length) later(Sound.win, 700);
     if (state.birthday) Confetti.burst(2600);
   }
 
@@ -1062,5 +1096,5 @@
   renderChefPicker();
 
   // handy for tinkering from the console
-  window.BAKERY = { INGREDIENTS, CAKES, buildProfile, pickCake, CONFIG };
+  window.BAKERY = { INGREDIENTS, CAKES, CHEFS, buildProfile, pickCake, rateBake, CONFIG };
 })();

@@ -13,26 +13,41 @@ rendered with `image-rendering: pixelated`.
 | File | Size | Used for |
 | --- | --- | --- |
 | `kitchen-bg.png` | 1376×768 | The bakery — backdrop for the belt, dimmed behind the other screens |
-| `chef-tara.png` | 203×420 | Tara Tapir, the Checkout Chef (default) |
-| `chef-garrington.png` | 280×420 | Garrington Gecko, the Sous Lizard (unlocked after the first bake) |
+| `chef-tara.png` | 203×420 | Tara Tapir, Checkout Chef (available from the start) |
+| `chef-garrington.png` | 280×420 | Garrington Gecko, Sous Lizard (first bake) |
+| `chef-bernie.png` | 218×420 | Bernie Banana, Head of Batter (3-star cake) |
+| `chef-bronte.png` | 256×420 | Brontë Bottlenose, Executive Chef (5-star cake) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
-Both chef sprites are the source art cut out and trimmed to the character's
-bounding box, then scaled to a shared **420px height** so they stand at the
-same size — Garrington's box is wider only because of his tail. Each chef's
-`aspect` in the `CHEFS` array in `game.js` must match its PNG, since the
-sprite is sized by height and the aspect ratio supplies the width.
+Every chef sprite is the source art cut out, trimmed to the character's
+bounding box and scaled to a shared **420px height**, so they all stand the
+same size — the differing widths are just tails, stalks and fins. Each chef's
+`aspect` in the `CHEFS` array in `game.js` must match its PNG, since sprites
+are sized by height and the aspect ratio supplies the width.
+
+Source art arrives in two shapes, and the cutout has to match:
+
+- **Real alpha** (Tara, Brontë) — only the soft glow halo needs stripping.
+  This path is colour-agnostic, which matters for Brontë: she is grey, and a
+  colour-keyed fill would eat her.
+- **Checkerboard baked into RGB** (Garrington, Bernie) — flood fill the
+  checker from the borders, loose enough to catch the anti-aliased blends
+  between squares (they form a connected mesh across the whole image), then
+  clear enclosed pockets and keep only the largest blob, which drops the
+  stray sparkle artefacts these files carry.
 
 `bowl.png` and `sea-splash.png` are crops of `kitchen-bg.png` so the side
 panels match the room.
 
-### Adding a third chef
+### Adding another chef
 
 Add an entry to `CHEFS` in `game.js` (`id`, `name`, `role`, `emoji`, `sprite`,
-`aspect`, `line`) and drop the PNG in here. The picker renders from that array,
-so nothing else needs changing — though the unlock rule in `chefsUnlocked()`
-currently gates the whole picker on a single bake.
+`aspect`, `line`) and drop the PNG in here. Give it an `unlock` of
+`{ hint, test }` where `test` reads the save (`bakes`, `bestStars`), or omit
+`unlock` to make the chef available from the start. The picker, the lock
+states and the result-screen announcement all render from that array, so
+nothing else needs changing.
 
 ### How the kitchen lines up with the belt
 

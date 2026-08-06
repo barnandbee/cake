@@ -38,8 +38,7 @@
         </p>
       </div>
 
-      <div class="chef-picker" id="chef-picker" role="radiogroup" aria-label="Choose your chef" hidden></div>
-      <p class="chef-locked" id="chef-locked">🔒 Bake your first cake to unlock a second chef</p>
+      <div class="chef-picker" id="chef-picker" role="radiogroup" aria-label="Choose your chef"></div>
 
       <label class="field">
         <span class="field__label">Your name</span>
@@ -156,17 +155,7 @@
 
       <ul class="recap" id="recap" aria-label="Ingredients used"></ul>
 
-      <div class="unlock" id="unlock" hidden>
-        <span class="sprite unlock__art">
-          <img src="assets/chef-garrington.png" alt="" data-fallback>
-          <span class="sprite__fallback" aria-hidden="true">🦎</span>
-        </span>
-        <span class="unlock__text">
-          <b>New chef unlocked!</b>
-          <span id="unlock-name">Garrington Gecko</span>
-          <small>Pick your chef on the start screen.</small>
-        </span>
-      </div>
+      <div class="unlock" id="unlock" role="status" hidden></div>
 
       <button class="btn btn--primary btn--big" id="btn-again" type="button">Play Again</button>
     </section>
