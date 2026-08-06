@@ -63,6 +63,21 @@ game.js      ingredient data, cake mapping, game engine
 assets/      drop-in PNGs (see assets/README.md)
 ```
 
+### Deploying: bump the cache buster
+
+`index.html` loads `style.css?v=…` and `game.js?v=…`. **Change that version
+whenever you edit the CSS or JS.**
+
+The three files are coupled — `game.js` looks up specific element ids — so a
+browser holding a cached older `game.js` against a freshly deployed
+`index.html` can hit a missing element and break mid-round. The query string
+forces browsers to fetch the matching files together.
+
+As a backstop, the result screen renders inside a `try`/`catch` and always
+switches views, so a mismatch degrades into a plain-looking cake instead of
+stranding the player on the baking screen, and `game.js` logs a
+`markup/script mismatch` warning at boot listing any elements it can't find.
+
 ## How the cake is chosen
 
 Every ingredient carries a set of flavour axes (`choc`, `citrus`, `chaos`,

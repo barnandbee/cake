@@ -893,7 +893,11 @@
     later(showResult, CONFIG.bakeMs);
   }
 
-  function showResult() {
+  /* Fills in the result screen and returns any chefs the bake just earned.
+     Kept separate from showResult so that switching to the result view is
+     guaranteed even if some part of this fails: being stranded on the baking
+     screen with no cake is the worst outcome the game has. */
+  function renderResult() {
     const prof = buildProfile(state.picked);
     const cake = pickCake(prof);
     const stars = rateBake(prof);
@@ -952,11 +956,32 @@
       sweepSprites();
     }
 
-    showView('result');
-    Sound.win();
+    return earned;
+  }
 
-    if (earned.length) later(Sound.win, 700);
-    if (state.birthday) Confetti.burst(2600);
+  function showResult() {
+    let earned = [];
+    try {
+      earned = renderResult();
+    } catch (err) {
+      // Most likely cause: a browser holding a stale game.js against fresh
+      // markup, so an element the script expects isn't there. Show the result
+      // screen regardless — a half-dressed cake beats a frozen oven.
+      console.error('[bakery] result render failed:', err);
+      if (els.cakeName && !els.cakeName.textContent) {
+        els.cakeName.textContent = 'Something came out of the oven';
+      }
+    }
+
+    showView('result');
+
+    try {
+      Sound.win();
+      if (earned.length) later(Sound.win, 700);
+      if (state.birthday) Confetti.burst(2600);
+    } catch (err) {
+      console.error('[bakery] result flourishes failed:', err);   // purely decorative
+    }
   }
 
   /* ---------- confetti ---------- */
@@ -1084,6 +1109,17 @@
   // boot
   els.hudMax.textContent = CONFIG.maxPicks;
   els.hudTotal.textContent = INGREDIENTS.length;
+  // If the markup and this script have drifted apart (usually a cached
+  // game.js against a fresh index.html) say so loudly rather than failing
+  // later in the middle of a round.
+  const missingEls = Object.entries(els)
+    .filter(([key, el]) => key !== 'views' && !el)
+    .map(([key]) => key);
+  if (missingEls.length) {
+    console.warn('[bakery] markup/script mismatch — missing elements:', missingEls.join(', '),
+                 '\nA hard refresh usually fixes this.');
+  }
+
   sweepSprites();
   window.addEventListener('load', sweepSprites);
   probeKitchen();
