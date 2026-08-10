@@ -54,7 +54,16 @@
     { id: 'bronte', name: 'Brontë Bottlenose', role: 'Executive Chef', emoji: '🐬',
       sprite: 'assets/chef-bronte.png', aspect: '256 / 420',
       line: 'Trained at sea. Can hear a soggy bottom from three rooms away.',
-      unlock: { hint: 'Bake a 5-star cake', test: s => s.bestStars >= 5 } }
+      unlock: { hint: 'Bake a 5-star cake', test: s => s.bestStars >= 5 } },
+
+    { id: 'finn', name: 'Mr. Finn Boffington', role: 'Pâtisserie Monster', emoji: '👾',
+      sprite: 'assets/chef-finn.png', aspect: '274 / 420',
+      line: 'Sequins, horns and a whisk. Has tasted every cake in the book and has notes.',
+      unlock: {
+        hint: 'Bake 5 different cakes',
+        test: s => s.cakeIds.length >= 5,
+        progress: s => `${Math.min(s.cakeIds.length, 5)} / 5`
+      } }
   ];
 
   const DEFAULT_CHEF = CHEFS[0];
@@ -69,8 +78,13 @@
          a field existed simply defaults.
      --------------------------------------------------------- */
   const SAVE_KEY = 'cbbb.save.v1';
-  const blankSave = () => ({ name: '', chef: DEFAULT_CHEF.id, bakes: 0, bestStars: 0 });
+  const blankSave = () => ({ name: '', chef: DEFAULT_CHEF.id, bakes: 0, bestStars: 0, cakeIds: [] });
   const counter = (v, max) => (Number.isFinite(v) && v > 0 ? Math.min(Math.floor(v), max) : 0);
+
+  /** Distinct cake ids seen, deduped and sanity-checked. */
+  const cakeIdList = v => (Array.isArray(v)
+    ? [...new Set(v.filter(n => Number.isInteger(n) && n >= 1 && n <= CAKES.length))]
+    : []);
 
   const Save = {
     load() {
@@ -80,7 +94,8 @@
           name: typeof raw.name === 'string' ? raw.name.slice(0, 16) : '',
           chef: chefById(raw.chef).id,
           bakes: counter(raw.bakes, Number.MAX_SAFE_INTEGER),
-          bestStars: counter(raw.bestStars, 5)
+          bestStars: counter(raw.bestStars, 5),
+          cakeIds: cakeIdList(raw.cakeIds)
         };
       } catch {
         return blankSave();
@@ -637,13 +652,15 @@
       return `
       <button type="button" class="chef-chip${open ? '' : ' chef-chip--locked'}"
               role="radio" aria-checked="false" data-chef="${c.id}"
-              ${open ? '' : `disabled aria-label="${c.name} — locked. ${c.unlock.hint}"`}>
+              ${open ? '' : `disabled aria-label="${c.name} — locked. ${c.unlock.hint}${
+                  c.unlock.progress ? `, ${c.unlock.progress(state.save)}` : ''}"`}>
         <span class="sprite chef-chip__art" style="aspect-ratio:${c.aspect}">
           <img src="${c.sprite}" alt="" data-fallback>
           <span class="sprite__fallback" aria-hidden="true">${c.emoji}</span>
         </span>
         <span class="chef-chip__name">${open ? c.name : '???'}</span>
-        ${open ? '' : `<span class="chef-chip__hint">🔒 ${c.unlock.hint}</span>`}
+        ${open ? '' : `<span class="chef-chip__hint">🔒 ${c.unlock.hint}${
+            c.unlock.progress ? ` <b>${c.unlock.progress(state.save)}</b>` : ''}</span>`}
       </button>`;
     }).join('');
     sweepSprites();   // cached chip art may already be complete
@@ -929,6 +946,7 @@
     const before = CHEFS.filter(c => isUnlocked(c, state.save)).map(c => c.id);
     state.save.bakes += 1;
     state.save.bestStars = Math.max(state.save.bestStars, stars);
+    if (!state.save.cakeIds.includes(cake.id)) state.save.cakeIds.push(cake.id);
     Save.write(state.save);
     const earned = CHEFS.filter(c => isUnlocked(c, state.save) && !before.includes(c.id));
 

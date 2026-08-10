@@ -17,6 +17,7 @@ rendered with `image-rendering: pixelated`.
 | `chef-garrington.png` | 280×420 | Garrington Gecko, Sous Lizard (first bake) |
 | `chef-bernie.png` | 218×420 | Bernie Banana, Head of Batter (3-star cake) |
 | `chef-bronte.png` | 256×420 | Brontë Bottlenose, Executive Chef (5-star cake) |
+| `chef-finn.png` | 274×420 | Mr. Finn Boffington, Pâtisserie Monster (5 different cakes) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
@@ -36,6 +37,12 @@ Source art arrives in two shapes, and the cutout has to match:
   between squares (they form a connected mesh across the whole image), then
   clear enclosed pockets and keep only the largest blob, which drops the
   stray sparkle artefacts these files carry.
+- **Alpha plus a baked-in glow** (Finn) — transparent, but with a dark tinted
+  glow left opaque around the character. Don't try to flood fill it out: the
+  glow is *lighter* than his pure-black outline, so a colour-keyed fill leaks
+  through the outline and splits the sprite in half. Strip the halo as usual
+  and measure the trim from lit pixels only; the leftover fringe is dark and
+  invisible against the game's backgrounds.
 
 `bowl.png` and `sea-splash.png` are crops of `kitchen-bg.png` so the side
 panels match the room.

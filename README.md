@@ -42,6 +42,11 @@ the condition to unlock them, and whoever you pick works the belt that round.
 | Garrington Gecko | Sous Lizard | baking your first cake |
 | Bernie Banana | Head of Batter | baking a 3-star cake |
 | Brontë Bottlenose | Executive Chef | baking a 5-star cake |
+| Mr. Finn Boffington | Pâtisserie Monster | baking 5 *different* cakes |
+
+Finn's chip shows a running count (`3 / 5`) since collecting takes several
+rounds. Repeats don't count — the save keeps the set of distinct cake ids, so
+five Disaster Loaves still leaves you on 1 of 5.
 
 Stars come from `rateBake()` — core ingredients and distinct flavours push the
 rating up, chaos drags it down, and a bowl of two or fewer is capped low. Across
@@ -49,7 +54,8 @@ rating up, chaos drags it down, and a bowl of two or fewer is capped low. Across
 real goal; play deliberately (keep the core six, skip the hot sauce) and 5 stars
 is reliable. One good cake can unlock several chefs at once.
 
-Name, chosen chef and bake count live in `localStorage` under `cbbb.save.v1`.
+Name, chosen chef, bake count, best star rating and the set of cakes you've
+baked live in `localStorage` under `cbbb.save.v1`.
 Every read and write is wrapped in `try`/`catch`, so private mode or a browser
 that refuses storage just means nothing is remembered — the game plays fine.
 To replay the unlock, clear that key (or use a private window).

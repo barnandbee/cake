@@ -231,15 +231,11 @@ body {
 
 /* ---------------- chef picker ---------------- */
 
-/* 2x2 on a phone, a single row once there's width for it */
+/* packs to fit: 3 across on a phone, the whole roster in one row on desktop */
 .chef-picker {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 8px;
-}
-
-@media (min-width: 560px) {
-  .chef-picker { grid-template-columns: repeat(4, 1fr); }
 }
 
 .chef-chip {
@@ -285,6 +281,7 @@ body {
 .chef-chip--locked .chef-chip__art { filter: grayscale(1) brightness(.35); opacity: .75; }
 .chef-chip--locked .chef-chip__name { color: #6d5aa8; letter-spacing: .2em; }
 .chef-chip__hint { font-size: 7px; line-height: 1.5; color: #a08fd0; text-transform: none; letter-spacing: 0; }
+.chef-chip__hint b { color: var(--neon-2); font-weight: normal; white-space: nowrap; }
 
 /* ---------------- name field ---------------- */
 
