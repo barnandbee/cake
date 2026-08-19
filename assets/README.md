@@ -18,6 +18,7 @@ rendered with `image-rendering: pixelated`.
 | `chef-bernie.png` | 218×420 | Bernie Banana, Head of Batter (3-star cake) |
 | `chef-bronte.png` | 256×420 | Brontë Bottlenose, Executive Chef (5-star cake) |
 | `chef-finn.png` | 274×420 | Mr. Finn Boffington, Pâtisserie Monster (5 different cakes) |
+| `chef-pete.png` | 318×420 | Pete Koala, Airborne Grill Chief (hidden unlock) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
@@ -88,10 +89,12 @@ turn to mush at 16px.
 
 Add an entry to `CHEFS` in `game.js` (`id`, `name`, `role`, `emoji`, `sprite`,
 `aspect`, `line`) and drop the PNG in here. Give it an `unlock` of
-`{ hint, test }` where `test` reads the save (`bakes`, `bestStars`), or omit
-`unlock` to make the chef available from the start. The picker, the lock
-states and the result-screen announcement all render from that array, so
-nothing else needs changing.
+`{ hint, test }` where `test` reads the save (`bakes`, `bestStars`, `cakeIds`,
+`secrets`), plus an optional `progress` returning a string like `3 / 5` for
+goals that take several rounds. Omit `unlock` entirely to make the chef
+available from the start. The picker, the lock states and the result-screen
+announcement all render from that array, so nothing else needs changing — and
+the picker wraps, so any roster size lays out sensibly.
 
 ### How the kitchen lines up with the belt
 

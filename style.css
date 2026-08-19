@@ -231,12 +231,17 @@ body {
 
 /* ---------------- chef picker ---------------- */
 
-/* packs to fit: 3 across on a phone, the whole roster in one row on desktop */
+/* Wraps to fit — 3 across on a phone, more when there's room. Flex rather than
+   grid so a roster that doesn't divide evenly centres its last row instead of
+   leaving a chip hanging off the left. */
 .chef-picker {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
 }
+
+.chef-chip { flex: 1 1 100px; max-width: 170px; }
 
 .chef-chip {
   display: flex;

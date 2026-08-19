@@ -36,6 +36,11 @@
          height, so the aspect ratio supplies the width and every
          chef stands the same size despite tails and stalks.
      --------------------------------------------------------- */
+  /* A player who bakes under this name earns a chef. The locked chip only
+     hints at "a popular name" — spelling it out would spoil the find. */
+  const SECRET_NAME = 'pete';
+  const SECRET_NAME_ID = 'popular-name';
+
   const CHEFS = [
     { id: 'tara', name: 'Tara Tapir', role: 'Checkout Chef', emoji: '👩‍🍳',
       sprite: 'assets/chef-tara.png', aspect: '203 / 420',
@@ -63,7 +68,12 @@
         hint: 'Bake 5 different cakes',
         test: s => s.cakeIds.length >= 5,
         progress: s => `${Math.min(s.cakeIds.length, 5)} / 5`
-      } }
+      } },
+
+    { id: 'pete', name: 'Pete Koala', role: 'Airborne Grill Chief', emoji: '🐨',
+      sprite: 'assets/chef-pete.png', aspect: '318 / 420',
+      line: 'Flies in from the Bronx on a bald eagle, spatula first. Nobody has dared ask why.',
+      unlock: { hint: 'Bake under a popular name', test: s => s.secrets.includes(SECRET_NAME_ID) } }
   ];
 
   const DEFAULT_CHEF = CHEFS[0];
@@ -78,7 +88,8 @@
          a field existed simply defaults.
      --------------------------------------------------------- */
   const SAVE_KEY = 'cbbb.save.v1';
-  const blankSave = () => ({ name: '', chef: DEFAULT_CHEF.id, bakes: 0, bestStars: 0, cakeIds: [] });
+  const blankSave = () => ({ name: '', chef: DEFAULT_CHEF.id, bakes: 0, bestStars: 0, cakeIds: [], secrets: [] });
+  const SECRET_IDS = [SECRET_NAME_ID];
   const counter = (v, max) => (Number.isFinite(v) && v > 0 ? Math.min(Math.floor(v), max) : 0);
 
   /** Distinct cake ids seen, deduped and sanity-checked. */
@@ -95,7 +106,8 @@
           chef: chefById(raw.chef).id,
           bakes: counter(raw.bakes, Number.MAX_SAFE_INTEGER),
           bestStars: counter(raw.bestStars, 5),
-          cakeIds: cakeIdList(raw.cakeIds)
+          cakeIds: cakeIdList(raw.cakeIds),
+          secrets: Array.isArray(raw.secrets) ? SECRET_IDS.filter(id => raw.secrets.includes(id)) : []
         };
       } catch {
         return blankSave();
@@ -947,6 +959,9 @@
     state.save.bakes += 1;
     state.save.bestStars = Math.max(state.save.bestStars, stars);
     if (!state.save.cakeIds.includes(cake.id)) state.save.cakeIds.push(cake.id);
+    if (state.playerName.toLowerCase() === SECRET_NAME && !state.save.secrets.includes(SECRET_NAME_ID)) {
+      state.save.secrets.push(SECRET_NAME_ID);
+    }
     Save.write(state.save);
     const earned = CHEFS.filter(c => isUnlocked(c, state.save) && !before.includes(c.id));
 
