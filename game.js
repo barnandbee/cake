@@ -70,9 +70,10 @@
         progress: s => `${Math.min(s.cakeIds.length, 5)} / 5`
       } },
 
-    { id: 'pete', name: 'Pete Koala', role: 'Airborne Grill Chief', emoji: '🐨',
-      sprite: 'assets/chef-pete.png', aspect: '318 / 420',
-      line: 'Flies in from the Bronx on a bald eagle, spatula first. Nobody has dared ask why.',
+    // id stays 'pete' so saves that already picked this chef keep their choice
+    { id: 'pete', name: 'Kyra Koala ft. Ernie Eagle', role: 'Airborne Grill Chief', emoji: '🐨',
+      sprite: 'assets/chef-kyra.png', aspect: '318 / 420',
+      line: 'Flies in from the Bronx on Ernie, spatula first. Nobody has dared ask why.',
       unlock: { hint: 'Bake under a popular name', test: s => s.secrets.includes(SECRET_NAME_ID) } }
   ];
 

@@ -43,13 +43,13 @@ the condition to unlock them, and whoever you pick works the belt that round.
 | Bernie Banana | Head of Batter | baking a 3-star cake |
 | Brontë Bottlenose | Executive Chef | baking a 5-star cake |
 | Mr. Finn Boffington | Pâtisserie Monster | baking 5 *different* cakes |
-| Pete Koala | Airborne Grill Chief | a secret — the chip only hints at "a popular name" |
+| Kyra Koala ft. Ernie Eagle | Airborne Grill Chief | a secret — the chip only hints at "a popular name" |
 
 Finn's chip shows a running count (`3 / 5`) since collecting takes several
 rounds. Repeats don't count — the save keeps the set of distinct cake ids, so
 five Disaster Loaves still leaves you on 1 of 5.
 
-Pete is a hidden one: bake a cake with a particular name in the box (case and
+Kyra is a hidden one: bake a cake with a particular name in the box (case and
 surrounding spaces don't matter) and he turns up. The condition is `SECRET_NAME`
 at the top of `game.js` if you need to look it up, and the wording on the locked
 chip is deliberately vague.

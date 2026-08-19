@@ -18,7 +18,7 @@ rendered with `image-rendering: pixelated`.
 | `chef-bernie.png` | 218×420 | Bernie Banana, Head of Batter (3-star cake) |
 | `chef-bronte.png` | 256×420 | Brontë Bottlenose, Executive Chef (5-star cake) |
 | `chef-finn.png` | 274×420 | Mr. Finn Boffington, Pâtisserie Monster (5 different cakes) |
-| `chef-pete.png` | 318×420 | Pete Koala, Airborne Grill Chief (hidden unlock) |
+| `chef-kyra.png` | 318×420 | Kyra Koala ft. Ernie Eagle, Airborne Grill Chief (hidden unlock) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
 
