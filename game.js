@@ -471,6 +471,82 @@
   })();
 
   /* ---------------------------------------------------------
+     5b. MUSIC — the theme for the chef select screen, looped.
+         Plays only there, follows the same mute button as the
+         effects, and fades rather than cutting. Browsers refuse to
+         start audio before the player interacts with the page, so
+         the first play is armed from a gesture (see armMusic) and
+         every later visit to the screen just works.
+     --------------------------------------------------------- */
+  const Music = (() => {
+    const TRACK = 'assets/level-up-pastry.mp3';
+    const LEVEL = 0.4;      // background, not foreground
+    const FADE_MS = 500;
+
+    let el = null, missing = false, wanted = false, raf = null;
+
+    const audio = () => {
+      if (missing) return null;
+      if (!el) {
+        el = new Audio(TRACK);
+        el.loop = true;
+        el.preload = 'auto';
+        el.volume = 0;
+        // no track shipped (or it failed to load) — the game just stays quiet
+        el.addEventListener('error', () => { missing = true; el = null; });
+      }
+      return el;
+    };
+
+    const rampTo = (target, then) => {
+      const a = audio();
+      if (!a) return;
+      cancelAnimationFrame(raf);
+      const from = a.volume, t0 = performance.now();
+      const step = now => {
+        const k = Math.min(1, (now - t0) / FADE_MS);
+        a.volume = from + (target - from) * k;
+        if (k < 1) raf = requestAnimationFrame(step);
+        else if (then) then();
+      };
+      raf = requestAnimationFrame(step);
+    };
+
+    return {
+      /** Safe to call repeatedly; a no-op once it's already playing. */
+      start() {
+        wanted = true;
+        const a = audio();
+        if (!a || !Sound.enabled) return;
+        if (a.paused) {
+          const played = a.play();
+          // Rejects when no gesture has happened yet. Not an error: the next
+          // call, armed by a real interaction, will get through.
+          if (played && played.catch) played.catch(() => {});
+        }
+        rampTo(LEVEL);
+      },
+      stop() {
+        wanted = false;
+        const a = audio();
+        if (!a || a.paused) return;
+        rampTo(0, () => a.pause());
+      },
+      setEnabled(on) {
+        const a = audio();
+        if (!on) {
+          if (a && !a.paused) { cancelAnimationFrame(raf); a.volume = 0; a.pause(); }
+        } else if (wanted) {
+          this.start();
+        }
+      },
+      /** Tab hidden: hold the track rather than playing to an empty room. */
+      suspend() { const a = audio(); if (a && !a.paused) { cancelAnimationFrame(raf); a.pause(); } },
+      resume()  { if (wanted && Sound.enabled) this.start(); }
+    };
+  })();
+
+  /* ---------------------------------------------------------
      6. SPRITES — <img src="assets/…"> on top of an emoji fallback.
         Drop a PNG in and it takes over automatically; if the file
         is missing the <img> hides itself and the emoji shows.
@@ -612,6 +688,7 @@
   function showView(name) {
     Object.entries(els.views).forEach(([key, el]) => el.classList.toggle('view--active', key === name));
     els.views[name].scrollTop = 0;
+    if (name === 'start') Music.start(); else Music.stop();
   }
 
   function shuffle(arr) {
@@ -1129,10 +1206,25 @@
     Sound.enabled = !Sound.enabled;
     els.btnSound.textContent = Sound.enabled ? '🔊' : '🔇';
     els.btnSound.setAttribute('aria-pressed', String(Sound.enabled));
+    Music.setEnabled(Sound.enabled);   // one switch for effects and music
   });
+
+  /* The browser won't let audio start until the player has interacted, so the
+     first play is armed from a gesture on the start screen. Starting the game
+     is excluded — they're leaving the screen, and a blip of music on the way
+     out is worse than none. */
+  const armMusic = e => {
+    if (e.type === 'keydown' && e.key === 'Enter') return;
+    if (e.target.closest && e.target.closest('#btn-start')) return;
+    if (els.views.start.classList.contains('view--active')) Music.start();
+  };
+  els.views.start.addEventListener('pointerdown', armMusic);
+  els.views.start.addEventListener('keydown', armMusic);
 
   // pause the belt if the player tabs away mid-decision
   document.addEventListener('visibilitychange', () => {
+    if (document.hidden) Music.suspend(); else Music.resume();
+
     const cur = state.current;
     if (!cur) return;
     const play = document.hidden ? 'paused' : 'running';

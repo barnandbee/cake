@@ -21,6 +21,7 @@ rendered with `image-rendering: pixelated`.
 | `chef-kyra.png` | 318×420 | Kyra Koala ft. Ernie Eagle, Airborne Grill Chief (hidden unlock) |
 | `bowl.png` | 200×189 | Mixing bowl zone — cropped from the kitchen scene |
 | `sea-splash.png` | 160×358 | Sea zone — cropped from the kitchen scene |
+| `level-up-pastry.mp3` | 31s, 728 KB | Chef select theme, looped on that screen only |
 
 Every chef sprite is the source art cut out, trimmed to the character's
 bounding box and scaled to a shared **420px height**, so they all stand the

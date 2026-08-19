@@ -146,5 +146,19 @@ const CONFIG = {
 
 Keyboard playable, live-region announcements for each item and decision, and
 `prefers-reduced-motion` is respected for decoration (the belt keeps moving —
-it's the gameplay). Sound is generated with the Web Audio API and can be muted
-with the 🔊 button.
+it's the gameplay). The 🔊 button mutes everything.
+
+## Audio
+
+Sound effects are generated with the Web Audio API, so there are no effect
+files to ship. The chef select screen has a looping theme
+(`assets/level-up-pastry.mp3`), which plays **only on that screen** — it fades
+in when you arrive, fades out when you start a round, and pauses if you switch
+tabs.
+
+Browsers refuse to start audio before the player interacts with the page, so
+the first play is armed from a gesture on the select screen. Pressing **Start
+Game** is deliberately excluded: you're leaving the screen, and a blip of music
+on the way out is worse than none. Every later visit starts it immediately.
+
+Delete the mp3 and the game runs exactly as before, in silence.
