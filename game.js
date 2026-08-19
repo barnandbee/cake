@@ -483,7 +483,7 @@
     const LEVEL = 0.4;      // background, not foreground
     const FADE_MS = 500;
 
-    let el = null, missing = false, wanted = false, raf = null;
+    let el = null, missing = false, wanted = false, raf = null, generation = 0;
 
     const audio = () => {
       if (missing) return null;
@@ -498,14 +498,22 @@
       return el;
     };
 
+    /* Fades are started by user actions that can land in the same frame (a
+       pointerdown arming the music, its click switching screens), and a frame
+       callback already queued can outlive cancelAnimationFrame. Stamping each
+       fade means a superseded one stops writing instead of fighting the new
+       one — and volume is clamped, since the media element throws outright on
+       a value a hair outside [0, 1]. */
     const rampTo = (target, then) => {
       const a = audio();
       if (!a) return;
+      const mine = ++generation;
       cancelAnimationFrame(raf);
       const from = a.volume, t0 = performance.now();
       const step = now => {
+        if (mine !== generation) return;
         const k = Math.min(1, (now - t0) / FADE_MS);
-        a.volume = from + (target - from) * k;
+        a.volume = Math.min(1, Math.max(0, from + (target - from) * k));
         if (k < 1) raf = requestAnimationFrame(step);
         else if (then) then();
       };
@@ -535,13 +543,13 @@
       setEnabled(on) {
         const a = audio();
         if (!on) {
-          if (a && !a.paused) { cancelAnimationFrame(raf); a.volume = 0; a.pause(); }
+          if (a && !a.paused) { generation++; cancelAnimationFrame(raf); a.volume = 0; a.pause(); }
         } else if (wanted) {
           this.start();
         }
       },
       /** Tab hidden: hold the track rather than playing to an empty room. */
-      suspend() { const a = audio(); if (a && !a.paused) { cancelAnimationFrame(raf); a.pause(); } },
+      suspend() { const a = audio(); if (a && !a.paused) { generation++; cancelAnimationFrame(raf); a.pause(); } },
       resume()  { if (wanted && Sound.enabled) this.start(); }
     };
   })();

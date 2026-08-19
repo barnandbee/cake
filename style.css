@@ -360,6 +360,21 @@ body {
 .howto ul { margin: 10px 0 0; padding-left: 18px; }
 .howto b { color: var(--neon-3); }
 
+/* studio credit */
+.studio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 2px dashed #4a2a8a;
+}
+
+.studio__mark { width: 60px; height: 60px; flex: none; }
+/* the mark is smooth artwork, not pixel art — don't let it get the crunchy treatment */
+.studio__mark img { image-rendering: auto; }
+.studio__mark .sprite__fallback { font-size: 26px; }
+
 .sound-toggle {
   position: absolute;
   top: 10px; right: 10px;
